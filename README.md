@@ -7,7 +7,7 @@ Basics:
 - the program checks the `$INTERVAL` entry if the status has changed (idle or work)
 - copy both files to a folder like apoolminer `~/apoolminer/`
 - switching between qubic and third-miner is in the `Third` screen
-- the third-miner used is Verus (VRSC), copy `ccminer` and `config.json` (in this case I renamed it to `ccminer.json`) to a folder like apoolminer `~/apoolminer/`
+- the third-miner used is Verus (VRSC) `https://verus.io/`, copy `ccminer` and `config.json` (in this case I renamed it to `ccminer.json`) to a folder like apoolminer `~/apoolminer/`
 - third-miner, in this case `ccminer` is started as an independent process in screen `CCminer` for idle time
 
 customization requires some prior programming knowledge
