@@ -1,5 +1,7 @@
 #!/bin/bash
 # v.2024-09-09
+# by blbMS
+
 LOG_FILE="$HOME/apoolminer/qubic.log"
 INTERVAL=30             # in sec
 found_status=false
