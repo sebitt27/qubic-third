@@ -42,6 +42,7 @@ function third_stop {
 
 function find_initial_status {
     while IFS= read -r line; do
+        echo "Processing line in initial status: $line"  # Debug info
         if echo "$line" | grep -q "mining idle now"; then
             echo -e "\e[0;93mInitial state: \e[1;92midle\e[0m"
             last_status="idle"
@@ -53,7 +54,7 @@ function find_initial_status {
             found_status=true
             break
         fi
-    done < <(tac "$LOG_FILE" | head -n 1000)  # Limite à 1000 lignes pour optimisation
+    done < <(tail -n 1000 "$LOG_FILE")  # Utilisation de tail pour éviter tac
 }
 
 find_initial_status
@@ -63,31 +64,43 @@ if [[ "$found_status" == "false" ]]; then
     exit 1
 fi
 
+# Vérifier si on est en "idle" au démarrage et lancer third_start si nécessaire
+if [[ "$last_status" == "idle" ]]; then
+    echo "Initial status is idle, starting Aleo..."
+    third_start
+fi
+
 while true; do
     while IFS= read -r line; do
+        echo "Processing line in main loop: $line"  # Debug info
         if echo "$line" | grep -q "mining idle now"; then
             current_status="idle"
+            echo "Found status: idle"
             break
         elif echo "$line" | grep -q "mining work now"; then
             current_status="work"
+            echo "Found status: work"
             break
         fi
-    done < <(tac "$LOG_FILE" | head -n 1000)  # Limite à 1000 lignes pour optimisation
+    done < <(tail -n 1000 "$LOG_FILE")  # Utilisation de tail pour éviter tac
 
-    # Si l'état actuel est le même que l'état précédent, continuer à attendre
+    echo "Current status: $current_status, Last status: $last_status"  # Debug info
+
     if [[ "$current_status" == "$last_status" ]]; then
+        echo "No status change, sleeping for $INTERVAL seconds."
         sleep $INTERVAL
         continue
     fi
 
-    if [[ "$current_status" == "idle" && "$last_status" != "idle" ]]; then
+    if [[ "$current_status" == "idle" ]]; then
         if screen -ls | grep -q "Aleo"; then
-            echo -e "\e[0;93mAleo already running\e[0m"
+            echo -e "\e[0;93mAleo already running, no need to start\e[0m"
         else
+            echo "Aleo not running, starting Aleo now (idle status detected)"
             third_start
         fi
         last_status="idle"
-    elif [[ "$current_status" == "work" && "$last_status" != "work" ]]; then
+    elif [[ "$current_status" == "work" ]]; then
         third_stop
         last_status="work"
     fi
