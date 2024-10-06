@@ -1,6 +1,6 @@
 #!/bin/bash
-# v.2024-09-09
-# by blbMS
+# v.2024-10-06
+# by sebit
 
 LOG_FILE="/var/tmp/screen.miner.log"
 INTERVAL=30             # in sec
