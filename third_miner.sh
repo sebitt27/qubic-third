@@ -2,7 +2,7 @@
 # v.2024-09-09
 # by blbMS
 
-LOG_FILE="/var/tmp/miner/custom_apoolminer_linux_v2.3.0/qubic.log"
+LOG_FILE="/var/tmp/screen.miner.log"
 INTERVAL=30             # in sec
 found_status=false
 last_status=""
@@ -16,7 +16,7 @@ function third_start {
     screen -X -S Aleo quit
     screen -wipe 1>/dev/null 2>&1
     screen -dmS Aleo 1>/dev/null 2>&1
-    ALEO="/home/miner/apool2.3/apoolminer_linux_v2.3.0/aleominer -u stratum+tcp://aleo-asia.f2pool.com:4400 -w sebit27"
+    ALEO="/home/miner/apool2.3/apoolminer_linux_v2.3.0/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27"
     screen -S Aleo -X stuff "$ALEO\n" 1>/dev/null 2>&1
     screen_ls
     echo $(date)
