@@ -8,7 +8,7 @@ found_status=false
 last_status=""
 
 function screen_ls {
-    screen -ls | sed -E "s/Third/\x1b[1;34m&\x1b[0m/g; s/Qubic/\x1b[1;31m&\x1b[0m/g; s/Aleo/\x1b[32m&\x1b[0m/g" | tail -n +2 | head -n -1
+    screen -ls | sed -E "s/Third/\x1b[1;34m&\x1b[0m/g; s/miner/\x1b[1;31m&\x1b[0m/g; s/Aleo/\x1b[32m&\x1b[0m/g" | tail -n +2 | head -n -1
 }
 
 function third_start {
