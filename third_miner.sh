@@ -1,6 +1,6 @@
 #!/bin/bash
-# v.2024-10-06
-# by sebit
+# v.2024-09-10
+# by blbMS
 
 LOG_FILE="/var/tmp/screen.miner.log"
 INTERVAL=30             # in sec
@@ -8,7 +8,7 @@ found_status=false
 last_status=""
 current_status=""
 
-# Vérification de l'existence du fichier log
+# VÃ©rification de l'existence du fichier log
 if [[ ! -f "$LOG_FILE" ]]; then
     echo -e "\e[0;91mLog file not found: $LOG_FILE\e[0m"
     exit 1
@@ -48,13 +48,13 @@ function find_initial_status {
             last_status="idle"
             found_status=true
             break
-        elif echo "$line" | grep -q "mining work now"; then
+        elif echo "$line" | grep -q "Reporting proof"; then
             echo -e "\e[0;93mInitial state: \e[1;91mwork\e[0m"
             last_status="work"
             found_status=true
             break
         fi
-    done < <(tail -n 1000 "$LOG_FILE")  # Utilisation de tail pour éviter tac
+    done < <(tail -n 1000 "$LOG_FILE")  # Utilisation de tail pour Ã©viter tac
 }
 
 find_initial_status
@@ -64,7 +64,7 @@ if [[ "$found_status" == "false" ]]; then
     exit 1
 fi
 
-# Vérifier si on est en "idle" au démarrage et lancer third_start si nécessaire
+# VÃ©rifier si on est en "idle" au dÃ©marrage et lancer third_start si nÃ©cessaire
 if [[ "$last_status" == "idle" ]]; then
     echo "Initial status is idle, starting Aleo..."
     third_start
@@ -77,12 +77,12 @@ while true; do
             current_status="idle"
             echo "Found status: idle"
             break
-        elif echo "$line" | grep -q "mining work now"; then
+        elif echo "$line" | grep -q "Reporting proof"; then
             current_status="work"
             echo "Found status: work"
             break
         fi
-    done < <(tail -n 1000 "$LOG_FILE")  # Utilisation de tail pour éviter tac
+    done < <(tail -n 1000 "$LOG_FILE")  # Utilisation de tail pour Ã©viter tac
 
     echo "Current status: $current_status, Last status: $last_status"  # Debug info
 
