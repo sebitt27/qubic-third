@@ -7,6 +7,12 @@ INTERVAL=30             # in sec
 found_status=false
 last_status=""
 
+# Vérifier si le fichier de log existe et est accessible
+if [[ ! -f "$LOG_FILE" ]]; then
+    echo -e "\e[0;91mLog file $LOG_FILE does not exist or is not accessible\e[0m"
+    exit 1
+fi
+
 function screen_ls {
     screen -ls | sed -E "s/Third/\x1b[1;34m&\x1b[0m/g; s/Qubic/\x1b[1;31m&\x1b[0m/g; s/Aleo/\x1b[32m&\x1b[0m/g" | tail -n +2 | head -n -1
 }
@@ -21,7 +27,7 @@ function third_start {
 
     echo "Starting a new screen session named 'Aleo'..."
     screen -dmS Aleo
-    sleep 1  # Pause pour permettre à la session de se lancer
+    sleep 2  # Pause pour permettre à la session de se lancer complètement
 
     echo "Sending command to Aleo screen session..."
     screen -S Aleo -X stuff '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsim.rack\n'
@@ -44,7 +50,6 @@ function third_stop {
     echo $(date)
 }
 
-
 function find_initial_status {
     while IFS= read -r line; do
         if echo "$line" | grep -q "mining idle now"; then
@@ -63,7 +68,7 @@ function find_initial_status {
 
 find_initial_status
 if [[ "$found_status" == false ]]; then
-    echo -e "\n\e[0;91mNo initial status found 'mining idle now' or 'mining work now' v $LOG_FILE\e[0m\n"
+    echo -e "\n\e[0;91mNo initial status found: 'mining idle now' or 'mining work now' in $LOG_FILE\e[0m\n"
     exit 1
 fi
 
@@ -77,6 +82,9 @@ while true; do
             break
         fi
     done < <(tac "$LOG_FILE")
+
+    # Affichage pour le débogage du statut actuel et précédent
+    echo "Current status: $current_status, Last status: $last_status"
 
     if [[ "$current_status" == "idle" && "$last_status" != "idle" ]]; then
         if screen -ls | grep -q "Aleo"; then
