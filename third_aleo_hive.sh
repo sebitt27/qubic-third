@@ -13,10 +13,26 @@ function screen_ls {
 
 function third_start {
     echo -e "\e[1;92mQUBIC = IDLE, starting ALEO\e[0m"
+    echo "Attempting to close any existing Aleo sessions..."
     screen -X -S Aleo quit
+
+    echo "Cleaning up detached screen sessions..."
     screen -wipe 1>/dev/null 2>&1
-    screen -dmS Aleo 1>/dev/null 2>&1
-    screen -S Aleo '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsim.rack' 1>/dev/null 2>&1
+
+    echo "Starting a new screen session named 'Aleo'..."
+    screen -dmS Aleo
+    sleep 1  # Pause pour permettre à la session de se lancer
+
+    echo "Sending command to Aleo screen session..."
+    screen -S Aleo -X stuff '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsim.rack\n'
+
+    # Vérifiez si la session Aleo a bien été créée
+    if screen -ls | grep -q "Aleo"; then
+        echo -e "\e[0;92mAleo session successfully started\e[0m"
+    else
+        echo -e "\e[0;91mFailed to start Aleo session\e[0m"
+    fi
+
     screen_ls
     echo $(date)
 }
