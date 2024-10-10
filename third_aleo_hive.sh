@@ -30,7 +30,7 @@ function third_start {
     sleep 2  # Pause pour permettre à la session de se lancer complètement
 
     echo "Sending command to Aleo screen session..."
-    screen -S Aleo -X stuff '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsim.rack\n'
+    screen -S Aleo -X stuff '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsims.rack\n'
 
     # Vérifiez si la session Aleo a bien été créée
     if screen -ls | grep -q "Aleo"; then
