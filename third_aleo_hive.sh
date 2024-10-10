@@ -17,7 +17,7 @@ function third_start {
     screen -wipe 1>/dev/null 2>&1
     screen -dmS Aleo 1>/dev/null 2>&1
     VERUS="/home/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsim.rack"
-    screen -S Aelo -X stuff "$VERUS\n" 1>/dev/null 2>&1
+    screen -S Aleo -X stuff "$VERUS\n" 1>/dev/null 2>&1
     screen_ls
     echo $(date)
 }
@@ -64,7 +64,7 @@ while true; do
     done < <(tac "$LOG_FILE")
 
     if [[ "$current_status" == "idle" && "$last_status" != "idle" ]]; then
-        if screen -ls | grep -q "CCniner"; then
+        if screen -ls | grep -q "Aleo"; then
             echo -e "\e[0;93mAleo already running\e[0m"
         else
             third_start
