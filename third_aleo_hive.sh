@@ -6,6 +6,7 @@ LOG_FILE="/hive/miners/custom/apoolminer_hiveos_autoupdate/qubic.log"
 INTERVAL=30             # in sec
 found_status=false
 last_status=""
+HOSTNAME=$(hostname)    # Récupère le nom d'hôte du PC
 
 # Vérifier si le fichier de log existe et est accessible
 if [[ ! -f "$LOG_FILE" ]]; then
@@ -30,7 +31,7 @@ function third_start {
     sleep 2  # Pause pour permettre à la session de se lancer complètement
 
     echo "Sending command to Aleo screen session..."
-    screen -S Aleo -X stuff '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsims.rack\n'
+    screen -S Aleo -X stuff '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsims.${HOSTNAME}\n'
 
     # Vérifiez si la session Aleo a bien été créée
     if screen -ls | grep -q "Aleo"; then
