@@ -16,8 +16,7 @@ function third_start {
     screen -X -S Aleo quit
     screen -wipe 1>/dev/null 2>&1
     screen -dmS Aleo 1>/dev/null 2>&1
-    VERUS="/home/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsim.rack"
-    screen -S Aleo -X stuff "$VERUS\n" 1>/dev/null 2>&1
+    screen -S Aleo '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsim.rack' 1>/dev/null 2>&1
     screen_ls
     echo $(date)
 }
