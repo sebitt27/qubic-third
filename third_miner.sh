@@ -1,8 +1,11 @@
 #exécuter le script dans le répertoire ou il y a aleominer pour f2pool installer
 #penser à modifier le nom du compte f2pool
 
+# Récupère le nom d'hôte du PC
+hostname=$(hostname)
+
 third_miner="aleominer"
-third_cmd="./aleominer u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27.rigseb"
+third_cmd="./aleominer u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27.$hostname"
 
 echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Starting the monitoring loop..."
 
