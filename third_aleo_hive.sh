@@ -1,148 +1,66 @@
-#!/bin/bash
-# v.2024-09-09
-# by blbMS
+#exécuter le script dans le répertoire ou il y a aleominer pour f2pool installer
+#penser à modifier le nom du compte f2pool
 
-LOG_FILE="/hive/miners/custom/apoolminer_hiveos_autoupdate/qubic.log"
-INTERVAL=30             # in sec
-found_status=false
-last_status=""
-HOSTNAME=$(hostname)    # Récupère le nom d'hôte du PC
+# Récupère le nom d'hôte du PC
+hostname=$(hostname)
 
-# Vérifier si le fichier de log existe et est accessible
-if [[ ! -f "$LOG_FILE" ]]; then
-    echo -e "\e[0;91mLog file $LOG_FILE does not exist or is not accessible\e[0m"
-    exit 1
-fi
+third_miner="aleominer"
+third_cmd="./hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27.$hostname"
 
-function screen_ls {
-    screen -ls | sed -E "s/Third/\x1b[1;34m&\x1b[0m/g; s/Qubic/\x1b[1;31m&\x1b[0m/g; s/Aleo/\x1b[32m&\x1b[0m/g" | tail -n +2 | head -n -1
-}
+echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Starting the monitoring loop..."
 
-function third_start {
-    echo -e "\e[1;92mQUBIC = IDLE, starting ALEO\e[0m"
-    echo "Attempting to close any existing Aleo sessions..."
-    screen -X -S Aleo quit
-
-    echo "Cleaning up detached screen sessions..."
-    screen -wipe 1>/dev/null 2>&1
-
-    echo "Starting a new screen session named 'Aleo'..."
-    screen -dmS Aleo
-    sleep 2  # Pause pour permettre à la session de se lancer complètement
-
-    echo "Sending command to Aleo screen session..."
-    screen -S Aleo -X stuff '/hive/miners/custom/aleominer/aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w rockstarsims.${HOSTNAME}\n'
-
-    # Vérifiez si la session Aleo a bien été créée
-    if screen -ls | grep -q "Aleo"; then
-        echo -e "\e[0;92mAleo session successfully started\e[0m"
-    else
-        echo -e "\e[0;91mFailed to start Aleo session\e[0m"
-    fi
-
-    screen_ls
-    echo $(date)
-}
-
-function third_stop {
-    echo -e "\e[1;91mQUBIC = MINING, closing ALEO\e[0m"
-    screen -X -S Aleo quit
-    screen_ls
-    echo $(date)
-}
-
-function find_initial_status {
-    # Lire les dernières 1000 lignes du fichier de log pour détecter l'état initial
-    local log_lines
-    log_lines=$(tail -n 300 "$LOG_FILE")  # Utilisation de tail pour garantir les dernières lignes
-
-    echo "Analyzing log entries to find initial status..."  # Message de débogage
-
-    while IFS= read -r line; do
-        echo "Processing line in initial status detection: $line"  # Message de débogage
-
-        if [[ "$line" =~ mining\ idle\ now ]]; then
-            echo -e "\e[0;93mInitial state: \e[1;92midle\e[0m"
-            last_status="idle"
-            found_status=true
-            break
-        elif [[ "$line" =~ mining\ work\ now ]]; then
-            echo -e "\e[0;93mInitial state: \e[1;91mwork\e[0m"
-            last_status="work"
-            found_status=true
-            break
-        fi
-    done <<< "$log_lines"
-}
-
-function read_current_status {
-    # Lire les 1000 dernières lignes du fichier de log pour détecter l'état courant
-    local log_lines
-    log_lines=$(tail -n 300 "$LOG_FILE")  # Lire les 1000 dernières lignes du fichier de log
-
-    echo "Analyzing recent log entries for current status..."  # Message de débogage
-
-    while IFS= read -r line; do
-        echo "Processing log entry: $line"  # Message de débogage
-
-        if [[ "$line" =~ mining\ idle\ now ]]; then
-            current_status="idle"
-            echo "Detected current status: idle"  # Message de débogage
-            return 0  # Sortir de la fonction dès qu'on trouve l'état "idle"
-        elif [[ "$line" =~ mining\ work\ now ]]; then
-            current_status="work"
-            echo "Detected current status: work"  # Message de débogage
-            return 0  # Sortir de la fonction dès qu'on trouve l'état "work"
-        fi
-    done <<< "$log_lines"
-
-    # Si aucun état n'est détecté dans les dernières lignes, conserver l'état précédent
-    echo "No status change detected in the log file."
-    return 1  # Indiquer qu'aucune mise à jour d'état n'a été détectée
-}
-
-# Trouver l'état initial lors du démarrage du script
-find_initial_status
-
-if [[ "$found_status" == "false" ]]; then
-    echo -e "\n\e[0;91mNo initial status found ('mining idle now' or 'mining work now') in $LOG_FILE\e[0m\n"
-    exit 1
-fi
-
-# Vérifier si on est en "idle" au démarrage et lancer third_start si nécessaire
-if [[ "$last_status" == "idle" ]]; then
-    echo "Initial status is idle, starting Aleo..."
-    third_start
-fi
-
-# Boucle principale pour surveiller l'état courant
 while true; do
-    read_current_status  # Appeler la fonction qui lit l'état actuel
+    now_time=$(date +%s)
+    url="http://qubic1.hk.apool.io:8001/api/qubic/epoch_challenge"
+    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Fetching data from URL: $url"
 
-    if [[ $? -ne 0 ]]; then
-        echo "No status change, sleeping for $INTERVAL seconds."
-        sleep $INTERVAL
-        continue
-    fi
+    url_code=$(curl -s -o /dev/null -w '%{http_code}' "$url")
+    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m HTTP response code: $url_code"
 
-    echo "Current status: $current_status, Last status: $last_status"  # Message de débogage
+    if [ -e "$third_miner" ]; then
+        echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m $third_miner exists, proceeding with checks..."
 
-    if [[ "$current_status" == "$last_status" ]]; then
-        echo "No status change, sleeping for $INTERVAL seconds."
-    else
-        if [[ "$current_status" == "idle" ]]; then
-            if screen -ls | grep -q "Aleo"; then
-                echo -e "\e[0;93mAleo already running, no need to start\e[0m"
+        if [ "$url_code" -eq 200 ]; then
+            res_url=$(curl -s "$url")
+            echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Response from URL: $res_url"
+
+            mining_time=$(echo "$res_url" | grep -o '"timestamp":[0-9]*' | sed 's/.*"timestamp":\([0-9]*\).*/\1/')
+            mining_seed=$(echo "$res_url" | grep -o '"mining_seed":"[^"]*"' | sed 's/.*"mining_seed":"\([^"]*\)".*/\1/')
+
+            echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Extracted mining_time: $mining_time"
+            echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Extracted mining_seed: $mining_seed"
+
+            if [ -z "$mining_seed" ]; then
+                echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[31mERROR\033[0m Failed to check mining seed, will retry after 30 seconds"
+                sleep 30
+                continue
+            elif [ "$mining_seed" = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" ]; then
+                # Si le mining_seed indique que le système est en idle, alors démarrer third_cmd
+                echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Mining seed is idle indicator"
+
+                if ! pgrep -f "aleominer" > /dev/null; then
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Mining seed indicates idle, running third_cmd"
+                    $third_cmd > "idle_miner.log" 2>&1 &
+                    disown
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m third_cmd started: $third_cmd"
+                else
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m third_cmd is already running"
+                fi
             else
-                echo "Aleo not running, starting Aleo now (idle status detected)"
-                third_start
+                # Si le mining_seed n'est plus celui attendu, arrêter third_cmd (tous les processus aleominer)
+                echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[33mINFO\033[0m Mining seed indicates active mining, stopping idle miner"
+                if pgrep -f "aleominer" > /dev/null; then
+                    pkill -f "aleominer"
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Idle miner stopped successfully"
+                fi
             fi
-            last_status="idle"
-        elif [[ "$current_status" == "work" ]]; then
-            third_stop
-            last_status="work"
+            sleep 5
+        else
+            echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[31mERROR\033[0m Failed to connect to the URL, will retry after 30 seconds"
+            sleep 30
         fi
+    else
+        echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[31mERROR\033[0m $third_miner does not exist"
+        sleep 5
     fi
-
-    sleep $INTERVAL
 done
