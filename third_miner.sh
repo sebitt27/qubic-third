@@ -1,4 +1,5 @@
 #exécuter le script dans le répertoire ou il y a aleominer pour f2pool installer
+#penser à modifier le nom du compte f2pool
 
 third_miner="aleominer"
 third_cmd="./aleominer u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27.rigseb"
