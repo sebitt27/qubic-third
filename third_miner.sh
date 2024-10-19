@@ -5,7 +5,7 @@
 hostname=$(hostname)
 
 third_miner="aleominer"
-third_cmd="./aleominer u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27.$hostname"
+third_cmd="./aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27.$hostname"
 
 echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Starting the monitoring loop..."
 
