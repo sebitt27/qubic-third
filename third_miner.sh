@@ -1,5 +1,6 @@
 #exécuter le script dans le répertoire ou il y a aleominer pour f2pool installer
 #penser à modifier le nom du compte f2pool
+#penser à copier le binarie aleominer dans le dossier du script
 
 # Récupère le nom d'hôte du PC
 hostname=$(hostname)
