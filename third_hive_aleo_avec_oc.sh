@@ -10,6 +10,7 @@ ocfin="/home/user/ocfin.sh"  # Script à exécuter quand le mining_seed n'est pl
 
 # Indicateur pour s'assurer que le script ocdebut n'est exécuté qu'une seule fois
 idle_script_executed=false
+active_script_executed=false
 
 echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Starting the monitoring loop..."
 
@@ -56,6 +57,7 @@ while true; do
                     echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Running idle bash script ocdebut..."
                     bash "$ocdebut"
                     idle_script_executed=true  # Marque le script ocdebut comme exécuté
+                    active_script_executed=false  # Réinitialiser pour permettre ocfin après la sortie de l'idle
                 else
                     echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m ocdebut script has already been executed"
                 fi
@@ -66,13 +68,15 @@ while true; do
                     pkill -f "aleominer"
                     echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Idle miner stopped successfully"
                 fi
-                
-                # Exécuter le script ocfin lorsqu'on sort de l'état idle
-                echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Running ocfin bash script..."
-                bash "$ocfin"
-
-                # Réinitialiser l'indicateur idle_script_executed
-                idle_script_executed=false  # Réinitialiser pour permettre une nouvelle exécution de ocdebut si on revient en idle
+                # Exécuter le script ocfin une seule fois après avoir quitté l'état idle
+                if [ "$active_script_executed" = false ]; then
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Running active mining bash script..."
+                    bash "$ocfin"
+                    active_script_executed=true  # Marque le script ocfin comme exécuté
+                    idle_script_executed=false  # Réinitialiser pour permettre ocdebut lors du prochain idle
+                else
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Active mining bash script has already been executed"
+                fi
             fi
             sleep 5
         else
