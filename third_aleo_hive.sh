@@ -1,11 +1,16 @@
-#exécuter le script dans le répertoire ou il y a aleominer pour f2pool installer
-#penser à modifier le nom du compte f2pool
-
 # Récupère le nom d'hôte du PC
 hostname=$(hostname)
 
 third_miner="aleominer"
 third_cmd="./aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27.$hostname"
+
+# Scripts d'overclocking à exécuter
+ocdebut="/home/miner/ocdebut.sh"  # Script à exécuter quand la mining_seed est idle
+ocfin="/home/miner/ocfin.sh"  # Script à exécuter quand le mining_seed n'est plus idle
+
+# Indicateur pour s'assurer que le script ocdebut n'est exécuté qu'une seule fois
+idle_script_executed=false
+active_script_executed=false
 
 echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Starting the monitoring loop..."
 
@@ -35,7 +40,7 @@ while true; do
                 sleep 30
                 continue
             elif [ "$mining_seed" = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" ]; then
-                # Si le mining_seed indique que le système est en idle, alors démarrer third_cmd
+                # Si le mining_seed indique que le système est en idle, démarrer third_cmd
                 echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Mining seed is idle indicator"
 
                 if ! pgrep -f "aleominer" > /dev/null; then
@@ -46,12 +51,31 @@ while true; do
                 else
                     echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m third_cmd is already running"
                 fi
+
+                # Exécuter le script ocdebut une seule fois
+                if [ "$idle_script_executed" = false ]; then
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Running idle bash script ocdebut..."
+                    bash "$ocdebut"
+                    idle_script_executed=true  # Marque le script ocdebut comme exécuté
+                    active_script_executed=false  # Réinitialiser pour permettre ocfin après la sortie de l'idle
+                else
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m ocdebut script has already been executed"
+                fi
             else
                 # Si le mining_seed n'est plus celui attendu, arrêter third_cmd (tous les processus aleominer)
                 echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[33mINFO\033[0m Mining seed indicates active mining, stopping idle miner"
                 if pgrep -f "aleominer" > /dev/null; then
                     pkill -f "aleominer"
                     echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Idle miner stopped successfully"
+                fi
+                # Exécuter le script ocfin une seule fois après avoir quitté l'état idle
+                if [ "$active_script_executed" = false ]; then
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[32mINFO\033[0m Running active mining bash script..."
+                    bash "$ocfin"
+                    active_script_executed=true  # Marque le script ocfin comme exécuté
+                    idle_script_executed=false  # Réinitialiser pour permettre ocdebut lors du prochain idle
+                else
+                    echo -e "$(date +"%Y-%m-%d %H:%M:%S")     \033[34mDEBUG\033[0m Active mining bash script has already been executed"
                 fi
             fi
             sleep 5
