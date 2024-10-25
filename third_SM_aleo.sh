@@ -6,6 +6,7 @@ third_cmd="./aleominer -u stratum+ssl://aleo-asia.f2pool.com:4420 -w sebit27.$ho
 
 # Scripts d'overclocking à exécuter
 ocdebut="/home/miner/ocdebut.sh"  # Script à exécuter quand la mining_seed est idle
+ocfin="/home/miner/ocfin.sh"  # Script à exécuter quand le mining_seed n'est plus idle
 
 # Indicateur pour s'assurer que le script ocdebut n'est exécuté qu'une seule fois
 idle_script_executed=false
